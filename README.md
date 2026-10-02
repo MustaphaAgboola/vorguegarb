@@ -181,9 +181,67 @@ then set `MAILGUN_DOMAIN` / `MAILGUN_FROM` and restart.
 
 ## Deploying to Netlify
 
-1. Connect the repo; Netlify detects Next.js automatically (build `npm run build`).
-2. Add all environment variables, marking the secrets as "Contains secret".
-3. Add the production URL to Supabase **Site URL / Redirect URLs**.
+The repo is already set up for Netlify: `netlify.toml` pins `npm run build`,
+publishes `.next`, and sets Node 22. Netlify auto-installs the Next.js (OpenNext)
+adapter — you do **not** need to add a plugin entry.
+
+### 1. Import the project
+
+1. Push the code to GitHub.
+2. In Netlify: **Add new site → Import an existing project → GitHub**, then pick
+   the `vorguegarb` repo and the `main` branch.
+3. Leave the detected build settings as-is (command `npm run build`, publish
+   `.next`, Node 22 from `netlify.toml`).
+
+### 2. Add environment variables
+
+In **Site configuration → Environment variables**, add every key from
+`.env.example` (scope: all deploy contexts). Mark the secrets as "Contains
+secret":
+
+| Variable | Value | Secret? |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | no |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | no |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role key (not used by the app flow) | **yes** |
+| `MAILGUN_API_KEY` | Mailgun private/sending key | **yes** |
+| `MAILGUN_DOMAIN` | `sandbox….mailgun.org` or a verified domain | no |
+| `MAILGUN_FROM` | `VogueGarb <orders@YOUR_DOMAIN>` | no |
+| `MAILGUN_API_BASE` | `https://api.mailgun.net` | no |
+| `NEXT_PUBLIC_SITE_URL` | your Netlify URL | no |
+
+> `NEXT_PUBLIC_*` values are inlined into the client bundle **at build time**.
+> Set them before the first deploy, and **redeploy** whenever you change one.
+
+### 3. Deploy
+
+Click **Deploy site** (or just push to `main` — Netlify rebuilds on every push).
+When the build finishes, copy the site URL (e.g.
+`https://voguegarb-xyz.netlify.app`) from the site overview.
+
+### 4. Point Supabase at the live URL
+
+In Supabase **Authentication → URL Configuration**:
+
+- **Site URL:** your Netlify URL.
+- **Redirect URLs:** add all of these:
+  - `http://localhost:3000/**`
+  - `https://<your-site>.netlify.app/**`
+  - `https://**--<your-site>.netlify.app/**` (preview deploys)
+
+The Google Cloud Console redirect URI stays the **Supabase** callback
+(`https://<project-ref>.supabase.co/auth/v1/callback`) — it does not change.
+
+### 5. Verify
+
+- Sign in with Google on the live URL → you land back on `/shop`.
+- Place a test order → a row appears in Supabase and the Mailgun log shows the send.
+- Sign in with a second account → it cannot see the first account's orders.
+- Run `npm run test:mailgun -- you@example.com` locally to confirm deliverability.
+
+> Auth redirects use `window.location.origin`, so sign-in works on any domain
+> without extra code. `NEXT_PUBLIC_SITE_URL` is documented for completeness but
+> is not read by the current code.
 
 ## Project structure
 
