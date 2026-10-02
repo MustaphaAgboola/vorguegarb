@@ -4,6 +4,12 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # MAILGUN_API_BASE is a public URL (`https://api.mailgun.net`), not a secret,
+  # but it legitimately appears in the repo (docs, .env.example, src/lib/mailgun.ts).
+  # Tell Netlify's secret scanner to skip this key so the build isn't failed by
+  # a false positive. If the scan still fails, also remove MAILGUN_API_BASE from
+  # the site's environment variables (the code has a working default) — see README.
+  SECRETS_SCAN_OMIT_KEYS = "MAILGUN_API_BASE"
 
 # Secrets (SUPABASE_SERVICE_ROLE_KEY, MAILGUN_API_KEY, ...) belong in the
 # Netlify UI with "Contains secret" enabled, never in this file.

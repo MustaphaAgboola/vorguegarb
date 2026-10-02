@@ -243,6 +243,39 @@ The Google Cloud Console redirect URI stays the **Supabase** callback
 > without extra code. `NEXT_PUBLIC_SITE_URL` is documented for completeness but
 > is not read by the current code.
 
+### 6. Troubleshooting: "Secrets scanning found secrets in build"
+
+Netlify's secret scanner fails the build when a value it associates with one of
+your environment variables appears in the repo or in the build output. For this
+project that is a **false positive**:
+
+```
+Secret env var "MAILGUN_API_BASE"'s value detected:
+  found value at line 12 in .env.example
+  found value at line 19 in src/lib/mailgun.ts
+  ...
+```
+
+`MAILGUN_API_BASE` is a **public URL** (`https://api.mailgun.net`), not a
+credential — it just legitimately appears in `.env.example`, this README, and
+`src/lib/mailgun.ts`.
+
+Fix (do one), then **Deploys → Trigger deploy → Clear cache and deploy site**:
+
+- **Recommended:** in **Project configuration → Environment variables**, delete
+  the `MAILGUN_API_BASE` variable. The code defaults to the US base URL when it
+  is unset (`const base = process.env.MAILGUN_API_BASE ?? "https://api.mailgun.net"`
+  in `src/lib/mailgun.ts`), so nothing breaks. Only keep this variable if you are
+  on an **EU** Mailgun account (`https://api.eu.mailgun.net`).
+- **Or keep it** and add an environment variable named `SECRETS_SCAN_OMIT_KEYS`
+  whose value is `MAILGUN_API_BASE` (comma-separate multiple keys). This tells the
+  scanner to skip that key. The same key is also set in `netlify.toml`.
+
+Never mark `NEXT_PUBLIC_*` variables as "Contains secret": their values are
+inlined into the client bundle at build time, so the scanner would reject the
+build output. Leave the "Contains secret" flag on `MAILGUN_API_KEY` and
+`SUPABASE_SERVICE_ROLE_KEY` only.
+
 ## Project structure
 
 ```
