@@ -114,6 +114,42 @@ logged server-side (see AGENTS.md).
 Verify it works by placing a test order and checking the Mailgun dashboard's
 **Logs**, or watch your server logs for `Confirmation email failed:`.
 
+There is also a quick CLI check that sends a test and reports the real
+delivery outcome (including whether Gmail filed it as spam):
+
+```bash
+npm run test:mailgun -- you@example.com
+```
+
+### Why sandbox email lands in spam
+
+A sandbox domain (`sandbox….mailgun.org`) has no sending reputation and is not
+DMARC-aligned to a domain you own, so providers like Gmail **quarantine** it.
+The Mailgun event log shows `delivered` with `250 … DMARC:Quarantine`, and the
+message appears in **Spam**, not the inbox. The app is working correctly in that
+case — this is a deliverability setting, not a bug.
+
+To reach the inbox, verify a **custom domain** you own in Mailgun and update the
+env vars:
+
+1. **Sending → Domains → Add Domain** (e.g. `mg.yourdomain.com`).
+2. Add the DNS records Mailgun shows for that domain:
+   - `TXT` on the domain: `v=spf1 include:mailgun.org ~all`
+   - `TXT` on `k1._domainkey.<domain>`: the DKIM `k=rsa; p=…` value from the dashboard
+   - `MX` on the domain: `mxa.mailgun.org` and `mxb.mailgun.org` (priority 10)
+   - `CNAME` on `email.<domain>`: `mailgun.org` (optional, click/open tracking)
+   - `TXT` on `_dmarc.<domain>`: `v=DMARC1; p=none;` (recommended)
+3. Wait for the domain to show **Verified** (DNS can take minutes to a few hours).
+4. Point the app at it and restart the dev server (Next.js reads env at startup):
+   ```
+   MAILGUN_DOMAIN=mg.yourdomain.com
+   MAILGUN_FROM="VogueGarb <orders@mg.yourdomain.com>"
+   ```
+
+Until a custom domain is verified, sandbox mail will keep going to spam. If you
+only need a sandbox for a demo, every recipient must still be listed under
+**Sending → Domains → <sandbox> → Authorized Recipients**.
+
 ## Deploying to Netlify
 
 1. Connect the repo; Netlify detects Next.js automatically (build `npm run build`).
