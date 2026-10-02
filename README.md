@@ -150,6 +150,35 @@ Until a custom domain is verified, sandbox mail will keep going to spam. If you
 only need a sandbox for a demo, every recipient must still be listed under
 **Sending → Domains → <sandbox> → Authorized Recipients**.
 
+### Getting a free sending domain
+
+You need to control DNS for a domain (Mailgun verifies ownership with `TXT`/`CNAME`
+records). Free options that work, best first:
+
+- **GitHub Student Developer Pack** — best value, and it works for Nigerian
+  students (verify with a student ID, biodata page, or enrollment letter).
+  Sign up at [education.github.com/pack](https://education.github.com/pack), then claim:
+  - **Name.com** — 1 year free domain (25+ extensions incl. `.dev`, `.app`, `.live`)
+  - **Namecheap** — 1 year free `.me` domain (+ free SSL)
+  - **Tech Domains** — one `.TECH` domain free for 1 year
+  - Bonus: the pack also includes **Mailgun: 20,000 emails/month for 12 months**
+    (much better than the free plan's 100/day).
+
+  All three registrars give full DNS control, so SPF/DKIM/DMARC can be added.
+  The domain is free for the **first year only**; renewals cost money.
+- **Free subdomains** — technically fine for *sending*, which needs only `TXT`
+  (SPF + DKIM) and an optional `CNAME`. `MX` is only for *receiving* and is not
+  required for order confirmations. Options: [is-a.dev](https://www.is-a.dev/)
+  (register via GitHub PR), `FreeDNS` at afraid.org, or DuckDNS. Caveat: you
+  share the parent domain's reputation with strangers, so mail may still be
+  flagged as spam.
+- **Cheap promo TLDs** (not free, but ~$1–5 for the first year): `.xyz`, `.top`,
+  `.online`, `.site`. The free Mailgun plan already allows **1 custom sending
+  domain**, so this is enough.
+
+Whatever you pick, add the Mailgun records for that domain, wait for **Verified**,
+then set `MAILGUN_DOMAIN` / `MAILGUN_FROM` and restart.
+
 ## Deploying to Netlify
 
 1. Connect the repo; Netlify detects Next.js automatically (build `npm run build`).
