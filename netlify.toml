@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Secrets (SUPABASE_SERVICE_ROLE_KEY, MAILGUN_API_KEY, ...) belong in the
+# Netlify UI with "Contains secret" enabled, never in this file.
