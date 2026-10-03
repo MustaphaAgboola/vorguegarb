@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MAX_QUANTITY } from "@/lib/cart";
-import { useCart } from "./CartProvider";
+import { MAX_QUANTITY, useCart } from "@/context/CartContext";
 
 type Props = {
   product: {
@@ -21,6 +20,7 @@ export function AddToCart({ product }: Props) {
   const sizes = product.sizes ?? [];
   const [size, setSize] = useState<string | null>(sizes[0] ?? null);
   const [quantity, setQuantity] = useState(1);
+  const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
   if (!product.in_stock) {
@@ -31,16 +31,13 @@ export function AddToCart({ product }: Props) {
     );
   }
 
-  function handleAdd() {
-    add({
-      productId: product.id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      imageUrl: product.image_url,
-      size,
-      quantity,
-    });
+  async function handleAdd() {
+    // Guard against double submits while the request is in flight.
+    if (adding) return;
+    setAdding(true);
+    const ok = await add(product.id, size, quantity);
+    setAdding(false);
+    if (!ok) return;
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2500);
   }
@@ -102,8 +99,13 @@ export function AddToCart({ product }: Props) {
         </div>
       </div>
 
-      <button type="button" onClick={handleAdd} className="btn-accent w-full sm:w-auto">
-        {added ? "Added to cart" : "Add to cart"}
+      <button
+        type="button"
+        onClick={handleAdd}
+        disabled={adding}
+        className="btn-accent w-full disabled:opacity-60 sm:w-auto"
+      >
+        {adding ? "Adding…" : added ? "Added to cart" : "Add to cart"}
       </button>
 
       <p aria-live="polite" className="sr-only">

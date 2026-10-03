@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthed } from "@/lib/supabase/server";
 import { sendOrderConfirmation, type OrderEmailData } from "@/lib/mailgun";
 
 const bodySchema = z.object({
@@ -23,15 +23,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
-
-  // 1. Auth: user comes from the server session, never from the body
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthed(req);
   if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
 
-  // 2. Validate input
   let json: unknown;
   try {
     json = await req.json();
@@ -44,7 +38,6 @@ export async function POST(req: Request) {
   }
   const b = parsed.data;
 
-  // 3. Create order atomically; the DB computes the total from real prices
   const { data: orderId, error: rpcError } = await supabase.rpc("create_order", {
     p_full_name: b.fullName,
     p_phone: b.phone,
@@ -59,7 +52,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Could not place order. Check your cart and try again." }, { status: 400 });
   }
 
-  // 4. Email (best effort: never fails the order)
+  // Empty the cart on every device
+  await supabase.from("cart_items").delete().eq("user_id", user.id);
+
+  // Email is best effort and never fails the order
   try {
     const { data: order } = await supabase
       .from("orders")

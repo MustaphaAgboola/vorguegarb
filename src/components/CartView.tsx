@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { cartItemKey } from "@/lib/cart";
 import { formatNaira } from "@/lib/format";
-import { useCart } from "./CartProvider";
+import { MAX_QUANTITY, useCart } from "@/context/CartContext";
 import { ProductImage } from "./ProductImage";
 
 export function CartView() {
-  const { items, subtotal, ready, remove, setQuantity } = useCart();
+  const { items, subtotal, loading, remove, setQty } = useCart();
 
-  if (!ready) {
+  if (loading) {
     return (
       <div className="space-y-4" aria-busy="true" aria-label="Loading cart">
         {[0, 1].map((i) => (
@@ -43,7 +42,7 @@ export function CartView() {
     <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
       <ul className="space-y-4">
         {items.map((item) => {
-          const key = cartItemKey(item.productId, item.size);
+          const key = `${item.product_id}::${item.size}`;
           return (
             <li
               key={key}
@@ -51,8 +50,8 @@ export function CartView() {
             >
               <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100">
                 <ProductImage
-                  src={item.imageUrl}
-                  alt={item.name}
+                  src={item.products.image_url}
+                  alt={item.products.name}
                   sizes="80px"
                   className="object-cover"
                 />
@@ -61,14 +60,14 @@ export function CartView() {
               <div className="flex flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div className="min-w-0">
                   <Link
-                    href={`/shop/${item.slug}`}
+                    href={`/shop/${item.products.slug}`}
                     className="font-medium hover:text-accent"
                   >
-                    {item.name}
+                    {item.products.name}
                   </Link>
                   <p className="text-sm text-stone-500">
                     {item.size ? `Size ${item.size} · ` : ""}
-                    {formatNaira(item.price)}
+                    {formatNaira(item.products.price)}
                   </p>
                 </div>
 
@@ -76,8 +75,8 @@ export function CartView() {
                   <div className="inline-flex items-center rounded-lg border border-stone-300">
                     <button
                       type="button"
-                      aria-label={`Decrease quantity of ${item.name}`}
-                      onClick={() => setQuantity(key, item.quantity - 1)}
+                      aria-label={`Decrease quantity of ${item.products.name}`}
+                      onClick={() => setQty(item.product_id, item.size, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                       className="px-3 py-1.5 leading-none disabled:opacity-40"
                     >
@@ -86,21 +85,22 @@ export function CartView() {
                     <span className="min-w-8 text-center text-sm">{item.quantity}</span>
                     <button
                       type="button"
-                      aria-label={`Increase quantity of ${item.name}`}
-                      onClick={() => setQuantity(key, item.quantity + 1)}
-                      className="px-3 py-1.5 leading-none"
+                      aria-label={`Increase quantity of ${item.products.name}`}
+                      onClick={() => setQty(item.product_id, item.size, item.quantity + 1)}
+                      disabled={item.quantity >= MAX_QUANTITY}
+                      className="px-3 py-1.5 leading-none disabled:opacity-40"
                     >
                       +
                     </button>
                   </div>
 
                   <p className="w-24 text-right text-sm font-medium">
-                    {formatNaira(item.price * item.quantity)}
+                    {formatNaira(item.products.price * item.quantity)}
                   </p>
 
                   <button
                     type="button"
-                    onClick={() => remove(key)}
+                    onClick={() => remove(item.product_id, item.size)}
                     className="text-sm text-stone-500 underline-offset-2 hover:text-red-600 hover:underline"
                   >
                     Remove

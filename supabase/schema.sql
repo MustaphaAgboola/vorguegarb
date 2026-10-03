@@ -45,10 +45,24 @@ create table if not exists public.order_items (
 );
 create index if not exists order_items_order_idx on public.order_items(order_id);
 
+-- CART ITEMS --------------------------------------------------------------
+-- One row per (user, product, size); "" means no size was chosen.
+create table if not exists public.cart_items (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  product_id uuid not null references public.products(id) on delete cascade,
+  size       text not null default '',
+  quantity   integer not null check (quantity between 1 and 20),
+  created_at timestamptz not null default now(),
+  unique (user_id, product_id, size)
+);
+create index if not exists cart_items_user_idx on public.cart_items(user_id);
+
 -- ROW LEVEL SECURITY -----------------------------------------------------
 alter table public.products    enable row level security;
 alter table public.orders      enable row level security;
 alter table public.order_items enable row level security;
+alter table public.cart_items  enable row level security;
 
 create policy "products are public"
   on public.products for select using (true);
@@ -73,6 +87,24 @@ create policy "users read own order items"
 create policy "users insert own order items"
   on public.order_items for insert
   with check (exists (select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
+
+-- Cart rows are private to their owner. Drop-then-create keeps this file
+-- idempotent when adding cart_items to an already-created project.
+drop policy if exists "users read own cart" on public.cart_items;
+create policy "users read own cart"
+  on public.cart_items for select using (auth.uid() = user_id);
+
+drop policy if exists "users insert own cart" on public.cart_items;
+create policy "users insert own cart"
+  on public.cart_items for insert with check (auth.uid() = user_id);
+
+drop policy if exists "users update own cart" on public.cart_items;
+create policy "users update own cart"
+  on public.cart_items for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "users delete own cart" on public.cart_items;
+create policy "users delete own cart"
+  on public.cart_items for delete using (auth.uid() = user_id);
 
 -- ATOMIC ORDER CREATION --------------------------------------------------
 -- Prices come from the products table, never from the client.
@@ -125,3 +157,12 @@ end;
 $$;
 
 grant execute on function public.create_order(text,text,text,text,text,text,jsonb) to authenticated;
+
+-- REALTIME ----------------------------------------------------------------
+-- Lets CartContext keep every tab/device in sync via postgres_changes.
+do $$
+begin
+  alter publication supabase_realtime add table public.cart_items;
+exception
+  when duplicate_object then null;
+end $$;

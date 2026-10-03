@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCart } from "./CartProvider";
+import { useCart } from "@/context/CartContext";
 
 export function CartBadge() {
-  const { count, ready } = useCart();
+  const { count, loading } = useCart();
   const label = `Cart, ${count} item${count === 1 ? "" : "s"}`;
 
   return (
@@ -28,7 +28,7 @@ export function CartBadge() {
         />
       </svg>
       <span className="hidden sm:inline">Cart</span>
-      {ready && count > 0 ? (
+      {!loading && count > 0 ? (
         <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-semibold text-white">
           {count}
         </span>

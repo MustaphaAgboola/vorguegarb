@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatNaira } from "@/lib/format";
-import { useCart } from "./CartProvider";
+import { useCart } from "@/context/CartContext";
 import { ProductImage } from "./ProductImage";
 
 type Props = {
@@ -43,7 +43,7 @@ function validate(fields: Fields) {
 
 export function CheckoutForm({ defaultName, email }: Props) {
   const router = useRouter();
-  const { items, subtotal, ready, clear } = useCart();
+  const { items, subtotal, loading } = useCart();
 
   const [fields, setFields] = useState<Fields>({
     fullName: defaultName,
@@ -84,8 +84,8 @@ export function CheckoutForm({ defaultName, email }: Props) {
           state: fields.state.trim(),
           notes: fields.notes.trim(),
           items: items.map((i) => ({
-            productId: i.productId,
-            size: i.size,
+            productId: i.product_id,
+            size: i.size || null,
             quantity: i.quantity,
           })),
         }),
@@ -108,7 +108,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
         return;
       }
 
-      clear();
+      // The order API empties the DB cart; the provider syncs via Realtime.
       router.push(`/orders/${data.orderId}/success`);
     } catch {
       setFormError("Network error. Please check your connection and try again.");
@@ -116,7 +116,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
     }
   }
 
-  if (ready && items.length === 0) {
+  if (!loading && items.length === 0) {
     return (
       <div className="rounded-xl border border-stone-200 bg-white p-10 text-center">
         <h2 className="text-lg font-semibold">Your cart is empty</h2>
@@ -304,7 +304,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
       <aside className="h-fit rounded-xl border border-stone-200 bg-white p-6 lg:sticky lg:top-24">
         <h2 className="text-base font-semibold">Order summary</h2>
 
-        {!ready ? (
+        {loading ? (
           <p className="mt-4 text-sm text-stone-500" aria-busy="true">
             Loading your cart…
           </p>
@@ -313,25 +313,25 @@ export function CheckoutForm({ defaultName, email }: Props) {
             <ul className="mt-4 space-y-3">
               {items.map((item) => (
                 <li
-                  key={`${item.productId}::${item.size ?? ""}`}
+                  key={`${item.product_id}::${item.size}`}
                   className="flex items-center gap-3"
                 >
                   <div className="relative h-14 w-12 shrink-0 overflow-hidden rounded-md bg-stone-100">
                     <ProductImage
-                      src={item.imageUrl}
-                      alt={item.name}
+                      src={item.products.image_url}
+                      alt={item.products.name}
                       sizes="48px"
                       className="object-cover"
                     />
                   </div>
                   <div className="min-w-0 flex-1 text-sm">
-                    <p className="truncate font-medium">{item.name}</p>
+                    <p className="truncate font-medium">{item.products.name}</p>
                     <p className="text-stone-500">
                       {item.size ? `${item.size} · ` : ""}Qty {item.quantity}
                     </p>
                   </div>
                   <p className="text-sm font-medium">
-                    {formatNaira(item.price * item.quantity)}
+                    {formatNaira(item.products.price * item.quantity)}
                   </p>
                 </li>
               ))}
