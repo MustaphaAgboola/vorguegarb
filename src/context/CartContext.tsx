@@ -42,16 +42,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  // Track the logged-in user
+  // Track the logged-in user and keep Realtime authenticated so RLS lets our events through
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
-      setUserId(session?.user?.id ?? null)
-    );
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user.id ?? null);
+      supabase.realtime.setAuth(data.session?.access_token ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserId(session?.user.id ?? null);
+      supabase.realtime.setAuth(session?.access_token ?? null);
+    });
     return () => sub.subscription.unsubscribe();
   }, [supabase]);
 
-  // Load the cart and subscribe to live changes
+  // Load the cart and subscribe to live changes (only once we know who the user is)
   useEffect(() => {
     refetch();
     if (!userId) return;
@@ -60,9 +64,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "cart_items", filter: `user_id=eq.${userId}` },
-        () => refetch()
+        (payload) => {
+          console.log("CART EVENT", payload);
+          refetch();
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("CART CHANNEL", status);
+      });
     return () => {
       supabase.removeChannel(channel);
     };

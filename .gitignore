@@ -8,6 +8,9 @@
 /out/
 next-env.d.ts
 
+# expo (run from repo root)
+.expo/
+
 # production
 /build
 
