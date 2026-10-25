@@ -158,6 +158,19 @@ $$;
 
 grant execute on function public.create_order(text,text,text,text,text,text,jsonb) to authenticated;
 
+-- PRODUCT IMAGE STORAGE ---------------------------------------------------
+-- Public read so <Image> can load photos; no insert/update/delete policy, so
+-- only the service role can write. The admin routes hold that key server-side
+-- behind the ADMIN_EMAILS check.
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "product images are public" on storage.objects;
+create policy "product images are public"
+  on storage.objects for select
+  using (bucket_id = 'product-images');
+
 -- REALTIME ----------------------------------------------------------------
 -- Lets CartContext keep every tab/device in sync via postgres_changes.
 do $$

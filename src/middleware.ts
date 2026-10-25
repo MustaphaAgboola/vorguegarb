@@ -1,8 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Routes that require a signed-in user (PRD FR4 / FR7). */
-const PROTECTED_PREFIXES = ["/checkout", "/orders"];
+/**
+ * Routes that require a signed-in user (PRD FR4 / FR7). `/admin` additionally
+ * checks the ADMIN_EMAILS allowlist in the page and its API route.
+ */
+const PROTECTED_PREFIXES = ["/checkout", "/orders", "/admin"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
