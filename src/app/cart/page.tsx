@@ -8,7 +8,7 @@ export default function CartPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold sm:text-3xl">Your cart</h1>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Review your pieces before you check out.
         </p>
       </div>

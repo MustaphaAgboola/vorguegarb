@@ -33,41 +33,39 @@ export default async function ProductPage({ params }: Props) {
   if (!product) notFound();
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-stone-100">
+    <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-paper-warm">
         <ProductImage
           src={product.image_url}
           alt={product.name}
-          sizes="(max-width: 1024px) 100vw, 50vw"
+          sizes="(max-width: 1024px) 100vw, 55vw"
           priority
         />
       </div>
 
-      <div className="lg:py-4">
-        {product.category ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            {product.category}
+      <div className="lg:py-6">
+        {product.category ? <p className="eyebrow capitalize">{product.category}</p> : null}
+
+        <h1 className="mt-4 text-2xl font-normal sm:text-3xl">{product.name}</h1>
+        <p className="mt-3 text-lg text-ink-muted">{formatNaira(product.price)}</p>
+
+        {product.description ? (
+          <p className="mt-6 max-w-prose leading-relaxed text-ink-muted">
+            {product.description}
           </p>
         ) : null}
 
-        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{product.name}</h1>
-        <p className="mt-3 text-xl font-medium">{formatNaira(product.price)}</p>
-
-        {product.description ? (
-          <p className="mt-4 leading-relaxed text-stone-700">{product.description}</p>
-        ) : null}
-
-        <div className="mt-8">
+        <div className="mt-10">
           <AddToCart product={product} />
         </div>
 
-        <dl className="mt-10 space-y-2 border-t border-stone-200 pt-6 text-sm text-stone-600">
+        <dl className="mt-10 space-y-2 border-t border-ink-line pt-6 text-sm text-ink-muted">
           <div className="flex gap-2">
-            <dt className="font-medium text-stone-800">Made to order</dt>
+            <dt className="font-medium text-ink">Made to order</dt>
             <dd>· allow a few days for tailoring</dd>
           </div>
           <div className="flex gap-2">
-            <dt className="font-medium text-stone-800">Delivery</dt>
+            <dt className="font-medium text-ink">Delivery</dt>
             <dd>· arranged after your order, pay on delivery</dd>
           </div>
         </dl>

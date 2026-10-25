@@ -12,25 +12,25 @@ export function ProductCard({
 }) {
   return (
     <Link href={`/shop/${product.slug}`} className="group block">
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-stone-100">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-paper-warm">
         <ProductImage
           src={product.image_url}
           alt={product.name}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          sizes="(max-width: 640px) 50vw, 33vw"
           priority={priority}
-          className="transition-transform duration-500 group-hover:scale-105"
+          className="transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         />
         {!product.in_stock ? (
-          <span className="absolute left-2 top-2 rounded-full bg-stone-900/80 px-2.5 py-1 text-[11px] font-medium text-white">
+          <span className="absolute left-0 top-0 bg-ink px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-label text-paper">
             Sold out
           </span>
         ) : null}
       </div>
-      <div className="mt-3 space-y-0.5">
-        <h3 className="text-sm font-medium group-hover:text-accent sm:text-base">
-          {product.name}
-        </h3>
-        <p className="text-sm text-stone-600">{formatNaira(product.price)}</p>
+      <div className="mt-4 flex items-baseline justify-between gap-3">
+        <h3 className="text-sm font-normal">{product.name}</h3>
+        <p className="whitespace-nowrap text-sm text-ink-muted">
+          {formatNaira(product.price)}
+        </p>
       </div>
     </Link>
   );

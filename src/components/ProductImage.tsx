@@ -24,9 +24,9 @@ export function ProductImage({ src, alt, sizes, className = "", priority = false
     return (
       <div
         aria-hidden="true"
-        className={`grid h-full w-full place-items-center bg-stone-100 ${className}`}
+        className={`grid h-full w-full place-items-center bg-paper-warm ${className}`}
       >
-        <span className="text-[10px] uppercase tracking-[0.25em] text-stone-400">
+        <span className="text-[10px] uppercase tracking-wider text-ink-muted/50">
           VogueGarb
         </span>
       </div>

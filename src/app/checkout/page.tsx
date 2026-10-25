@@ -23,7 +23,7 @@ export default async function CheckoutPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold sm:text-3xl">Checkout</h1>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Tell us where to deliver. You&apos;ll pay on delivery.
         </p>
       </div>

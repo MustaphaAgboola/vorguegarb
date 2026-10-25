@@ -25,7 +25,7 @@ export function AddToCart({ product }: Props) {
 
   if (!product.in_stock) {
     return (
-      <p className="rounded-lg bg-stone-100 px-4 py-3 text-sm text-stone-600">
+      <p className="bg-paper-warm px-4 py-3 text-sm text-ink-muted">
         This piece is currently sold out. Check back soon.
       </p>
     );
@@ -58,10 +58,10 @@ export function AddToCart({ product }: Props) {
                   type="button"
                   aria-pressed={active}
                   onClick={() => setSize(s)}
-                  className={`min-w-11 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  className={`min-w-11 border px-3.5 py-2 text-[11px] font-medium uppercase tracking-label transition-colors ${
                     active
-                      ? "border-accent bg-accent-light text-accent-dark"
-                      : "border-stone-300 bg-white hover:border-stone-400"
+                      ? "border-ink bg-ink text-paper"
+                      : "border-ink-line bg-paper hover:border-ink"
                   }`}
                 >
                   {s}
@@ -73,8 +73,8 @@ export function AddToCart({ product }: Props) {
       ) : null}
 
       <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-stone-700">Quantity</span>
-        <div className="inline-flex items-center rounded-lg border border-stone-300">
+        <span className="text-sm font-medium text-ink-muted">Quantity</span>
+        <div className="inline-flex items-center border border-ink-line">
           <button
             type="button"
             aria-label="Decrease quantity"

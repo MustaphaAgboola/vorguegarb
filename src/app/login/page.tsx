@@ -15,13 +15,13 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-sm py-10 text-center">
       <h1 className="text-2xl font-semibold">Sign in to VogueGarb</h1>
-      <p className="mt-2 text-sm text-stone-600">
+      <p className="mt-2 text-sm text-ink-muted">
         Browsing is open to everyone. Sign in with Google to check out and track
         your orders.
       </p>
 
       {error ? (
-        <p role="alert" className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="mt-6 border border-red-600 px-4 py-3 text-sm text-red-700">
           We couldn&apos;t sign you in. Please try again.
         </p>
       ) : null}
@@ -30,13 +30,13 @@ export default async function LoginPage({ searchParams }: Props) {
         <GoogleLoginButton next={target} />
       </div>
 
-      <p className="mt-6 text-xs text-stone-500">
+      <p className="mt-6 text-xs text-ink-muted">
         We only use your Google name, email and photo.
       </p>
 
       <Link
         href="/shop"
-        className="mt-8 inline-block text-sm text-stone-600 hover:text-accent hover:underline"
+        className="mt-8 inline-block text-sm text-ink-muted hover:text-accent hover:underline"
       >
         Continue browsing instead
       </Link>

@@ -12,11 +12,11 @@ export function CartView() {
     return (
       <div className="space-y-4" aria-busy="true" aria-label="Loading cart">
         {[0, 1].map((i) => (
-          <div key={i} className="flex gap-4 rounded-xl border border-stone-200 bg-white p-4">
-            <div className="h-24 w-20 animate-pulse rounded-lg bg-stone-100" />
+          <div key={i} className="flex gap-4 border border-ink-line bg-paper p-4">
+            <div className="h-24 w-20 animate-pulse bg-paper-warm" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-1/2 animate-pulse rounded bg-stone-100" />
-              <div className="h-4 w-1/4 animate-pulse rounded bg-stone-100" />
+              <div className="h-4 w-1/2 animate-pulse bg-paper-warm" />
+              <div className="h-4 w-1/4 animate-pulse bg-paper-warm" />
             </div>
           </div>
         ))}
@@ -26,9 +26,9 @@ export function CartView() {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-stone-200 bg-white p-10 text-center">
+      <div className="border border-ink-line bg-paper p-10 text-center">
         <h2 className="text-lg font-semibold">Your cart is empty</h2>
-        <p className="mt-1 text-sm text-stone-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Browse the collection and add a piece you love.
         </p>
         <Link href="/shop" className="btn-accent mt-6">
@@ -46,9 +46,9 @@ export function CartView() {
           return (
             <li
               key={key}
-              className="flex gap-4 rounded-xl border border-stone-200 bg-white p-4"
+              className="flex gap-4 border border-ink-line bg-paper p-4"
             >
-              <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100">
+              <div className="relative h-24 w-20 shrink-0 overflow-hidden bg-paper-warm">
                 <ProductImage
                   src={item.products.image_url}
                   alt={item.products.name}
@@ -65,14 +65,14 @@ export function CartView() {
                   >
                     {item.products.name}
                   </Link>
-                  <p className="text-sm text-stone-500">
+                  <p className="text-sm text-ink-muted">
                     {item.size ? `Size ${item.size} · ` : ""}
                     {formatNaira(item.products.price)}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="inline-flex items-center rounded-lg border border-stone-300">
+                  <div className="inline-flex items-center border border-ink-line">
                     <button
                       type="button"
                       aria-label={`Decrease quantity of ${item.products.name}`}
@@ -101,7 +101,7 @@ export function CartView() {
                   <button
                     type="button"
                     onClick={() => remove(item.product_id, item.size)}
-                    className="text-sm text-stone-500 underline-offset-2 hover:text-red-600 hover:underline"
+                    className="text-sm text-ink-muted underline-offset-2 hover:text-red-600 hover:underline"
                   >
                     Remove
                   </button>
@@ -112,14 +112,14 @@ export function CartView() {
         })}
       </ul>
 
-      <aside className="h-fit rounded-xl border border-stone-200 bg-white p-6 lg:sticky lg:top-24">
+      <aside className="h-fit border border-ink-line bg-paper p-6 lg:sticky lg:top-24">
         <h2 className="text-base font-semibold">Order summary</h2>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-stone-600">Subtotal</dt>
+            <dt className="text-ink-muted">Subtotal</dt>
             <dd className="font-medium">{formatNaira(subtotal)}</dd>
           </div>
-          <div className="flex justify-between border-t border-stone-200 pt-3 text-base">
+          <div className="flex justify-between border-t border-ink-line pt-3 text-base">
             <dt className="font-semibold">Total</dt>
             <dd className="font-semibold">{formatNaira(subtotal)}</dd>
           </div>
@@ -129,7 +129,7 @@ export function CartView() {
         </Link>
         <Link
           href="/shop"
-          className="mt-3 block text-center text-sm text-stone-600 underline-offset-2 hover:text-accent hover:underline"
+          className="mt-3 block text-center text-sm text-ink-muted underline-offset-2 hover:text-accent hover:underline"
         >
           Continue shopping
         </Link>

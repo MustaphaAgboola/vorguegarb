@@ -118,9 +118,9 @@ export function CheckoutForm({ defaultName, email }: Props) {
 
   if (!loading && items.length === 0) {
     return (
-      <div className="rounded-xl border border-stone-200 bg-white p-10 text-center">
+      <div className="border border-ink-line bg-paper p-10 text-center">
         <h2 className="text-lg font-semibold">Your cart is empty</h2>
-        <p className="mt-1 text-sm text-stone-600">Add a piece before checking out.</p>
+        <p className="mt-1 text-sm text-ink-muted">Add a piece before checking out.</p>
         <Link href="/shop" className="btn-accent mt-6">
           Shop the collection
         </Link>
@@ -185,12 +185,12 @@ export function CheckoutForm({ defaultName, email }: Props) {
               id="email"
               name="email"
               type="email"
-              className="field bg-stone-100 text-stone-500"
+              className="field bg-paper-warm text-ink-muted"
               value={email}
               readOnly
               aria-describedby="email-hint"
             />
-            <p id="email-hint" className="mt-1 text-xs text-stone-500">
+            <p id="email-hint" className="mt-1 text-xs text-ink-muted">
               Your confirmation is sent to this Google address.
             </p>
           </div>
@@ -266,7 +266,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
 
           <div className="sm:col-span-2">
             <label htmlFor="notes" className="label">
-              Notes <span className="font-normal text-stone-500">(optional)</span>
+              Notes <span className="font-normal text-ink-muted">(optional)</span>
             </label>
             <textarea
               id="notes"
@@ -288,7 +288,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
         </div>
 
         {formError ? (
-          <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p role="alert" className="border border-red-600 px-4 py-3 text-sm text-red-700">
             {formError}
           </p>
         ) : null}
@@ -296,16 +296,16 @@ export function CheckoutForm({ defaultName, email }: Props) {
         <button type="submit" disabled={submitting} className="btn-accent w-full sm:w-auto">
           {submitting ? "Placing order…" : "Place order"}
         </button>
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-ink-muted">
           Pay on delivery. No payment is taken on this site.
         </p>
       </form>
 
-      <aside className="h-fit rounded-xl border border-stone-200 bg-white p-6 lg:sticky lg:top-24">
+      <aside className="h-fit border border-ink-line bg-paper p-6 lg:sticky lg:top-24">
         <h2 className="text-base font-semibold">Order summary</h2>
 
         {loading ? (
-          <p className="mt-4 text-sm text-stone-500" aria-busy="true">
+          <p className="mt-4 text-sm text-ink-muted" aria-busy="true">
             Loading your cart…
           </p>
         ) : (
@@ -316,7 +316,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
                   key={`${item.product_id}::${item.size}`}
                   className="flex items-center gap-3"
                 >
-                  <div className="relative h-14 w-12 shrink-0 overflow-hidden rounded-md bg-stone-100">
+                  <div className="relative h-14 w-12 shrink-0 overflow-hidden bg-paper-warm">
                     <ProductImage
                       src={item.products.image_url}
                       alt={item.products.name}
@@ -326,7 +326,7 @@ export function CheckoutForm({ defaultName, email }: Props) {
                   </div>
                   <div className="min-w-0 flex-1 text-sm">
                     <p className="truncate font-medium">{item.products.name}</p>
-                    <p className="text-stone-500">
+                    <p className="text-ink-muted">
                       {item.size ? `${item.size} · ` : ""}Qty {item.quantity}
                     </p>
                   </div>
@@ -339,10 +339,10 @@ export function CheckoutForm({ defaultName, email }: Props) {
 
             <dl className="mt-5 space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-stone-600">Subtotal</dt>
+                <dt className="text-ink-muted">Subtotal</dt>
                 <dd className="font-medium">{formatNaira(subtotal)}</dd>
               </div>
-              <div className="flex justify-between border-t border-stone-200 pt-3 text-base">
+              <div className="flex justify-between border-t border-ink-line pt-3 text-base">
                 <dt className="font-semibold">Total</dt>
                 <dd className="font-semibold">{formatNaira(subtotal)}</dd>
               </div>

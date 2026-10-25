@@ -31,20 +31,20 @@ export default async function OrderSuccessPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="rounded-xl border border-green-200 bg-green-50 px-6 py-8 text-center">
-        <p className="text-3xl" aria-hidden="true">
-          ✓
+      <div className="border border-ink bg-ink px-6 py-12 text-center text-paper">
+        <p className="text-[11px] font-medium uppercase tracking-label text-paper/70">
+          Order received
         </p>
-        <h1 className="mt-2 text-2xl font-semibold">Thank you, {order.full_name}!</h1>
-        <p className="mt-2 text-sm text-stone-700">
+        <h1 className="mt-4 text-2xl font-normal">Thank you, {order.full_name}.</h1>
+        <p className="mt-3 text-sm text-paper/70">
           Your order <strong>#{shortOrderId(order.id)}</strong> is confirmed. A copy has
           been sent to your email.
         </p>
       </div>
 
-      <div className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
+      <div className="mt-6 border border-ink-line bg-paper p-6">
         <h2 className="text-base font-semibold">Order summary</h2>
-        <ul className="mt-4 divide-y divide-stone-100 border-y border-stone-100">
+        <ul className="mt-4 divide-y divide-paper-warm border-y border-paper-warm">
           {(order.order_items ?? []).map((item) => (
             <li key={item.id} className="flex justify-between gap-4 py-3 text-sm">
               <span>
@@ -62,8 +62,8 @@ export default async function OrderSuccessPage({ params }: Props) {
           <span>{formatNaira(order.total)}</span>
         </div>
 
-        <div className="mt-6 border-t border-stone-200 pt-4 text-sm text-stone-600">
-          <p className="font-medium text-stone-800">Delivering to</p>
+        <div className="mt-6 border-t border-ink-line pt-4 text-sm text-ink-muted">
+          <p className="font-medium text-ink">Delivering to</p>
           <p className="mt-1">
             {order.address}, {order.city}, {order.state}
             <br />

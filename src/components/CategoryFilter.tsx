@@ -9,12 +9,13 @@ export function CategoryFilter({
 }) {
   if (categories.length === 0) return null;
 
-  const base = "rounded-full border px-3.5 py-1.5 text-sm capitalize transition-colors";
-  const on = "border-accent bg-accent text-white";
-  const off = "border-stone-300 bg-white text-stone-700 hover:border-stone-400";
+  const base =
+    "border-b pb-1 text-[11px] font-medium uppercase tracking-label capitalize transition-colors";
+  const on = "border-ink text-ink";
+  const off = "border-transparent text-ink-muted hover:text-ink";
 
   return (
-    <div className="flex flex-wrap gap-2" aria-label="Filter by category">
+    <div className="flex flex-wrap gap-x-6 gap-y-2" aria-label="Filter by category">
       <Link href="/shop" className={`${base} ${!active ? on : off}`}>
         All
       </Link>

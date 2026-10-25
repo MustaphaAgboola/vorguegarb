@@ -14,15 +14,14 @@ type Props = { searchParams: Promise<{ category?: string }> };
 function ProductGridSkeleton() {
   return (
     <div
-      className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3"
       aria-busy="true"
       aria-label="Loading products"
     >
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="space-y-3">
-          <div className="aspect-[3/4] w-full animate-pulse rounded-xl bg-stone-200" />
-          <div className="h-4 w-3/4 animate-pulse rounded bg-stone-200" />
-          <div className="h-4 w-1/3 animate-pulse rounded bg-stone-200" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="space-y-4">
+          <div className="aspect-[4/5] w-full animate-pulse bg-paper-warm" />
+          <div className="h-3 w-3/4 animate-pulse bg-paper-warm" />
         </div>
       ))}
     </div>
@@ -43,7 +42,7 @@ async function ShopResults({ category }: { category?: string }) {
 
   if (error) {
     return (
-      <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+      <p className="border border-ink-line px-4 py-3 text-sm text-ink-muted">
         We couldn&apos;t load the collection right now. Please try again.
       </p>
     );
@@ -51,11 +50,11 @@ async function ShopResults({ category }: { category?: string }) {
 
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-stone-300 px-6 py-16 text-center">
-        <h2 className="text-lg font-semibold">Nothing here yet</h2>
-        <p className="mt-1 text-sm text-stone-600">
+      <div className="border border-dashed border-ink-line px-6 py-20 text-center">
+        <p className="eyebrow">Nothing here yet</p>
+        <p className="mt-3 text-sm text-ink-muted">
           {category
-            ? `No pieces in \u201c${category}\u201d right now.`
+            ? `No pieces in “${category}” right now.`
             : "The collection is being restocked. Check back soon."}
         </p>
       </div>
@@ -63,9 +62,9 @@ async function ShopResults({ category }: { category?: string }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3">
       {products.map((product, index) => (
-        <ProductCard key={product.id} product={product} priority={index < 4} />
+        <ProductCard key={product.id} product={product} priority={index < 3} />
       ))}
     </div>
   );
@@ -80,15 +79,11 @@ export default async function ShopPage({ searchParams }: Props) {
   ).sort((a, b) => a.localeCompare(b));
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold sm:text-3xl">Shop</h1>
-        <p className="mt-1 text-sm text-stone-600">
-          Tailored pieces, made to order in Lagos.
-        </p>
+    <div className="space-y-10">
+      <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-ink-line pb-4">
+        <h1 className="eyebrow">The Collection</h1>
+        <CategoryFilter categories={categories} active={category} />
       </div>
-
-      <CategoryFilter categories={categories} active={category} />
 
       <Suspense fallback={<ProductGridSkeleton />}>
         <ShopResults category={category} />

@@ -11,7 +11,7 @@ export function CartBadge() {
     <Link
       href="/cart"
       aria-label={label}
-      className="relative inline-flex items-center gap-1.5 rounded py-1 hover:text-accent"
+      className="relative inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-label text-ink-muted transition-colors hover:text-ink"
     >
       <svg
         aria-hidden="true"
@@ -29,7 +29,7 @@ export function CartBadge() {
       </svg>
       <span className="hidden sm:inline">Cart</span>
       {!loading && count > 0 ? (
-        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-semibold text-white">
+        <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-ink px-1 text-[10px] font-semibold tracking-normal text-paper">
           {count}
         </span>
       ) : null}
