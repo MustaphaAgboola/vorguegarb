@@ -21,6 +21,8 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  /** Only selected in the admin-wide orders view; RLS scopes it away otherwise. */
+  user_id?: string;
   status: "pending" | "confirmed";
   total: number;
   full_name: string;
