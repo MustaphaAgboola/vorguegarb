@@ -64,32 +64,39 @@ alter table public.orders      enable row level security;
 alter table public.order_items enable row level security;
 alter table public.cart_items  enable row level security;
 
+-- Every policy is dropped before it is created, so this whole file can be
+-- re-run against an existing project without erroring on 42710.
+drop policy if exists "products are public" on public.products;
 create policy "products are public"
   on public.products for select using (true);
 
+drop policy if exists "users read own orders" on public.orders;
 create policy "users read own orders"
   on public.orders for select using (auth.uid() = user_id);
 
+drop policy if exists "users insert own orders" on public.orders;
 create policy "users insert own orders"
   on public.orders for insert with check (auth.uid() = user_id);
 
 -- Only email_sent_at may be updated by a user (see column grants below)
+drop policy if exists "users update own orders" on public.orders;
 create policy "users update own orders"
   on public.orders for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 revoke update on public.orders from authenticated;
 grant  update (email_sent_at) on public.orders to authenticated;
 
+drop policy if exists "users read own order items" on public.order_items;
 create policy "users read own order items"
   on public.order_items for select
   using (exists (select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
 
+drop policy if exists "users insert own order items" on public.order_items;
 create policy "users insert own order items"
   on public.order_items for insert
   with check (exists (select 1 from public.orders o where o.id = order_id and o.user_id = auth.uid()));
 
--- Cart rows are private to their owner. Drop-then-create keeps this file
--- idempotent when adding cart_items to an already-created project.
+-- Cart rows are private to their owner.
 drop policy if exists "users read own cart" on public.cart_items;
 create policy "users read own cart"
   on public.cart_items for select using (auth.uid() = user_id);
