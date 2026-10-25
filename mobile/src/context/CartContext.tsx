@@ -80,14 +80,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'cart_items', filter: `user_id=eq.${userId}` },
-        (payload) => {
-          console.log('CART EVENT', payload.eventType);
-          refetch();
-        }
+        () => refetch()
       )
-      .subscribe((status) => {
-        console.log('CART CHANNEL', status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

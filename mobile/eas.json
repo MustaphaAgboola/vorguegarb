@@ -1,0 +1,18 @@
+{
+  "cli": {
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://frnpefeowkkmmuxclccu.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZybnBlZmVvd2trbW11eGNsY2N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NDMwMTQsImV4cCI6MjEwNjQxOTAxNH0.Z22zwgHkChhnpAy0zWgO0rS6EWRanb0RVNkJZhUCWsM",
+        "EXPO_PUBLIC_API_URL": "https://vorguegarb.netlify.app"
+      }
+    }
+  }
+}

@@ -33,9 +33,6 @@ function readFragmentTokens(
  */
 export async function signInWithGoogle(): Promise<string | null> {
   const redirectTo = makeRedirectUri({ path: "auth/callback" });
-  console.log("REDIRECT TO:", redirectTo);
-  
-
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
