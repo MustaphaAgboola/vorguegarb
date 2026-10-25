@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthed } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
@@ -40,6 +41,87 @@ async function requireAdmin(req: Request) {
   return { admin: createAdminClient() };
 }
 
+/** Reads the shared product fields off a form submission. */
+function parseProductForm(form: FormData) {
+  return productSchema.safeParse({
+    name: form.get("name"),
+    description: form.get("description") ?? "",
+    price: form.get("price"),
+    category: form.get("category") ?? "general",
+    sizes: form.get("sizes") ?? "",
+    inStock: form.get("inStock") ?? "true",
+  });
+}
+
+function parseSizes(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+type UploadResult = { url: string } | { error: NextResponse } | null;
+
+/**
+ * Uploads the form's `image` to Storage when one was chosen.
+ * Returns null when no file was supplied, so callers can leave the photo as is.
+ */
+async function uploadImage(
+  admin: SupabaseClient,
+  form: FormData,
+  name: string
+): Promise<UploadResult> {
+  const file = form.get("image");
+  if (!(file instanceof File) || file.size === 0) return null;
+
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return {
+      error: NextResponse.json(
+        { error: "Image must be a JPEG, PNG, WebP or AVIF file." },
+        { status: 400 }
+      ),
+    };
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return {
+      error: NextResponse.json({ error: "Image must be 5MB or smaller." }, { status: 400 }),
+    };
+  }
+
+  const extension = file.type.split("/")[1].replace("jpeg", "jpg");
+  const path = `${slugify(name) || "product"}-${Date.now()}.${extension}`;
+
+  const { error } = await admin.storage
+    .from(BUCKET)
+    .upload(path, await file.arrayBuffer(), { contentType: file.type, upsert: false });
+
+  if (error) {
+    console.error("product image upload failed:", error);
+    return { error: NextResponse.json({ error: "Could not upload the image." }, { status: 400 }) };
+  }
+
+  return { url: admin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl };
+}
+
+/**
+ * Storage path behind one of our own public URLs, or null for anything else.
+ * Matches the full project prefix rather than searching for the bucket name, so
+ * a value pointing anywhere else — a seed row's local path, another bucket, or
+ * a planted URL — can never become a delete target.
+ */
+function storagePathFrom(imageUrl: string | null): string | null {
+  if (!imageUrl) return null;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+
+  const prefix = `${base}/storage/v1/object/public/${BUCKET}/`;
+  if (!imageUrl.startsWith(prefix)) return null;
+
+  const path = imageUrl.slice(prefix.length);
+  if (!path || path.startsWith("/") || path.includes("..")) return null;
+  return path;
+}
+
 /** POST /api/admin/products — create a product, optionally with an uploaded photo. */
 export async function POST(req: Request) {
   const gate = await requireAdmin(req);
@@ -53,14 +135,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Expected a form submission." }, { status: 400 });
   }
 
-  const parsed = productSchema.safeParse({
-    name: form.get("name"),
-    description: form.get("description") ?? "",
-    price: form.get("price"),
-    category: form.get("category") ?? "general",
-    sizes: form.get("sizes") ?? "",
-    inStock: form.get("inStock") ?? "true",
-  });
+  const parsed = parseProductForm(form);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Check the product details.", issues: parsed.error.flatten() },
@@ -70,38 +145,8 @@ export async function POST(req: Request) {
   const body = parsed.data;
 
   // Upload the photo first: a failure here should not leave a product behind.
-  let imageUrl: string | null = null;
-  const file = form.get("image");
-  if (file instanceof File && file.size > 0) {
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Image must be a JPEG, PNG, WebP or AVIF file." },
-        { status: 400 }
-      );
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      return NextResponse.json({ error: "Image must be 5MB or smaller." }, { status: 400 });
-    }
-
-    const extension = file.type.split("/")[1].replace("jpeg", "jpg");
-    const path = `${slugify(body.name) || "product"}-${Date.now()}.${extension}`;
-
-    const { error: uploadError } = await admin.storage
-      .from(BUCKET)
-      .upload(path, await file.arrayBuffer(), { contentType: file.type, upsert: false });
-
-    if (uploadError) {
-      console.error("product image upload failed:", uploadError);
-      return NextResponse.json({ error: "Could not upload the image." }, { status: 400 });
-    }
-
-    imageUrl = admin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-  }
-
-  const sizes = body.sizes
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const upload = await uploadImage(admin, form, body.name);
+  if (upload && "error" in upload) return upload.error;
 
   const { data: product, error } = await admin
     .from("products")
@@ -111,8 +156,8 @@ export async function POST(req: Request) {
       description: body.description,
       price: body.price,
       category: body.category.toLowerCase(),
-      image_url: imageUrl,
-      sizes,
+      image_url: upload?.url ?? null,
+      sizes: parseSizes(body.sizes),
       in_stock: body.inStock === "true",
     })
     .select("id,slug")
@@ -129,6 +174,82 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ product }, { status: 201 });
+}
+
+/**
+ * PATCH /api/admin/products — update a product. The photo is replaced only when
+ * a new file is chosen; the slug is deliberately left alone so existing
+ * /shop/[slug] links and any shared URLs keep working.
+ */
+export async function PATCH(req: Request) {
+  const gate = await requireAdmin(req);
+  if (gate.error) return gate.error;
+  const admin = gate.admin!;
+
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return NextResponse.json({ error: "Expected a form submission." }, { status: 400 });
+  }
+
+  const id = z.string().uuid().safeParse(form.get("id"));
+  if (!id.success) {
+    return NextResponse.json({ error: "Invalid product id." }, { status: 400 });
+  }
+
+  const parsed = parseProductForm(form);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Check the product details.", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+  const body = parsed.data;
+
+  const { data: existing, error: readError } = await admin
+    .from("products")
+    .select("id,image_url")
+    .eq("id", id.data)
+    .maybeSingle();
+
+  if (readError || !existing) {
+    return NextResponse.json({ error: "That product no longer exists." }, { status: 404 });
+  }
+
+  const upload = await uploadImage(admin, form, body.name);
+  if (upload && "error" in upload) return upload.error;
+
+  const { error } = await admin
+    .from("products")
+    .update({
+      name: body.name,
+      description: body.description,
+      price: body.price,
+      category: body.category.toLowerCase(),
+      sizes: parseSizes(body.sizes),
+      in_stock: body.inStock === "true",
+      // Leave the existing photo untouched when no new file was chosen.
+      ...(upload ? { image_url: upload.url } : {}),
+    })
+    .eq("id", id.data);
+
+  if (error) {
+    console.error("update product failed:", error);
+    return NextResponse.json({ error: "Could not save your changes." }, { status: 400 });
+  }
+
+  // The row now points at the new photo, so the old file is safe to drop.
+  // Best effort: an orphaned image must never fail the edit.
+  if (upload) {
+    const stale = storagePathFrom(existing.image_url);
+    if (stale) {
+      const { error: removeError } = await admin.storage.from(BUCKET).remove([stale]);
+      if (removeError) console.error("could not remove replaced image:", removeError);
+    }
+  }
+
+  return NextResponse.json({ ok: true });
 }
 
 /** DELETE /api/admin/products — remove a product by id. */
@@ -149,6 +270,12 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Invalid product id." }, { status: 400 });
   }
 
+  const { data: existing } = await admin
+    .from("products")
+    .select("image_url")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+
   const { error } = await admin.from("products").delete().eq("id", parsed.data.id);
   if (error) {
     console.error("delete product failed:", error);
@@ -158,6 +285,13 @@ export async function DELETE(req: Request) {
         ? "This piece appears in an existing order, so it can't be deleted. Mark it sold out instead."
         : "Could not delete the product.";
     return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  // Row is gone; drop its photo too rather than orphaning it in the bucket.
+  const path = storagePathFrom(existing?.image_url ?? null);
+  if (path) {
+    const { error: removeError } = await admin.storage.from(BUCKET).remove([path]);
+    if (removeError) console.error("could not remove deleted product image:", removeError);
   }
 
   return NextResponse.json({ ok: true });

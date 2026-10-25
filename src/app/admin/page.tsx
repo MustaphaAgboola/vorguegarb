@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { formatNaira } from "@/lib/format";
 import { AdminProductForm } from "@/components/AdminProductForm";
-import { AdminDeleteButton } from "@/components/AdminDeleteButton";
-import { ProductImage } from "@/components/ProductImage";
+import { AdminProductRow } from "@/components/AdminProductRow";
 import type { Product } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +49,11 @@ export default async function AdminPage() {
           <ul className="space-y-2.5">
             <li>Price is whole naira — no kobo, no separators.</li>
             <li>The URL slug is generated from the name, so names must be unique.</li>
+            <li>
+              Renaming a piece keeps its original web address, so links you&apos;ve already
+              shared keep working.
+            </li>
+            <li>Editing without choosing a new photo keeps the current one.</li>
             <li>Leave sizes empty for one-size pieces.</li>
             <li>A piece that already appears in an order can&apos;t be deleted — mark it sold out.</li>
           </ul>
@@ -78,21 +81,7 @@ export default async function AdminPage() {
         ) : (
           <ul className="mt-2 divide-y divide-ink-line">
             {products.map((product) => (
-              <li key={product.id} className="flex items-center gap-5 py-5">
-                <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden bg-paper-warm">
-                  <ProductImage src={product.image_url} alt={product.name} sizes="56px" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{product.name}</p>
-                  <p className="mt-1 text-[11px] uppercase tracking-label text-ink-muted">
-                    {product.category} · {formatNaira(product.price)}
-                    {product.in_stock ? "" : " · Sold out"}
-                  </p>
-                </div>
-
-                <AdminDeleteButton id={product.id} name={product.name} />
-              </li>
+              <AdminProductRow key={product.id} product={product} />
             ))}
           </ul>
         )}
