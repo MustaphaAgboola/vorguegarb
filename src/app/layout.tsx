@@ -11,9 +11,27 @@ const inter = Inter({
   display: "swap",
 });
 
-// `||`, not `??`: Netlify can hand us an empty string, and new URL("") throws
-// at build time. Only `||` treats "" as absent.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vorguegarb.netlify.app";
+const FALLBACK_SITE_URL = "https://vorguegarb.netlify.app";
+
+/**
+ * metadataBase is cosmetic — it only makes OG image paths absolute — but
+ * `new URL()` throws on anything malformed, which fails the whole build while
+ * collecting page data. Netlify has handed us both an empty string and a
+ * masked placeholder, so treat the variable as untrusted and fall back rather
+ * than let a canonical URL take the site down.
+ */
+function resolveSiteUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!raw) return FALLBACK_SITE_URL;
+  try {
+    return new URL(raw).toString();
+  } catch {
+    console.warn(`Ignoring malformed NEXT_PUBLIC_SITE_URL; using ${FALLBACK_SITE_URL}`);
+    return FALLBACK_SITE_URL;
+  }
+}
+
+const siteUrl = resolveSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
