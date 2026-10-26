@@ -1,59 +1,33 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/ProductCard";
-import { ProductImage } from "@/components/ProductImage";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import type { Product } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(6);
 
+  // The hero only shows pieces someone can actually buy; the grid below is
+  // allowed to include sold-out ones.
+  const [featuredResult, heroResult] = await Promise.all([
+    supabase.from("products").select("*").order("created_at", { ascending: false }).limit(6),
+    supabase
+      .from("products")
+      .select("*")
+      .eq("in_stock", true)
+      .order("created_at", { ascending: false })
+      .limit(4),
+  ]);
+
+  const { data, error } = featuredResult;
   const featured = (data ?? []) as Product[];
-  const hero = featured[0];
+  const heroProducts = (heroResult.data ?? []) as Product[];
 
   return (
     <div className="space-y-20 sm:space-y-28">
-      <section className="relative isolate">
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-paper-warm sm:aspect-[21/9]">
-          {hero ? (
-            <ProductImage
-              src={hero.image_url}
-              alt={hero.name}
-              sizes="100vw"
-              priority
-              className="object-cover"
-            />
-          ) : null}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-ink/25"
-          />
-          <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-12">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-paper/80">
-              Lagos, Nigeria
-            </p>
-            <h1 className="mt-3 max-w-2xl text-3xl font-normal leading-[1.1] text-paper sm:text-5xl">
-              Bespoke fashion,
-              <br />
-              made to order.
-            </h1>
-            <div className="mt-7">
-              <Link
-                href="/shop"
-                className="inline-flex items-center border border-paper bg-paper px-8 py-3.5 text-[11px] font-medium uppercase tracking-label text-ink transition-colors hover:bg-transparent hover:text-paper"
-              >
-                Shop the collection
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroCarousel products={heroProducts} />
 
       <section aria-labelledby="featured-heading">
         <div className="flex items-baseline justify-between gap-4 border-b border-ink-line pb-4">
