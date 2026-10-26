@@ -119,8 +119,10 @@ export function CheckoutForm({ defaultName, email }: Props) {
   if (!loading && items.length === 0) {
     return (
       <div className="border border-ink-line bg-paper p-10 text-center">
-        <h2 className="text-lg font-semibold">Your cart is empty</h2>
-        <p className="mt-1 text-sm text-ink-muted">Add a piece before checking out.</p>
+        <p className="eyebrow">Nothing to check out</p>
+        <p className="mt-3 text-sm text-ink-muted">
+          Hard to tailor thin air. Pick a piece first.
+        </p>
         <Link href="/shop" className="btn-accent mt-6">
           Shop the collection
         </Link>

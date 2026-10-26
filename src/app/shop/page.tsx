@@ -51,11 +51,11 @@ async function ShopResults({ category }: { category?: string }) {
   if (products.length === 0) {
     return (
       <div className="border border-dashed border-ink-line px-6 py-20 text-center">
-        <p className="eyebrow">Nothing here yet</p>
+        <p className="eyebrow">An empty rail</p>
         <p className="mt-3 text-sm text-ink-muted">
           {category
-            ? `No pieces in “${category}” right now.`
-            : "The collection is being restocked. Check back soon."}
+            ? `Nothing in “${category}” is ready yet. Try another rail.`
+            : "The collection is between fittings. Check back shortly."}
         </p>
       </div>
     );

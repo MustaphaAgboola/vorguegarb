@@ -26,12 +26,12 @@ export function CartView() {
 
   if (items.length === 0) {
     return (
-      <div className="border border-ink-line bg-paper p-10 text-center">
-        <h2 className="text-lg font-semibold">Your cart is empty</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Browse the collection and add a piece you love.
+      <div className="border border-dashed border-ink-line px-6 py-20 text-center">
+        <p className="eyebrow">Nothing in the bag</p>
+        <p className="mx-auto mt-3 max-w-sm text-sm text-ink-muted">
+          Your cart is looking a little underdressed. Let&apos;s fix that.
         </p>
-        <Link href="/shop" className="btn-accent mt-6">
+        <Link href="/shop" className="btn-accent mt-8">
           Shop the collection
         </Link>
       </div>

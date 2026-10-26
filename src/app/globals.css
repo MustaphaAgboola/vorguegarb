@@ -54,3 +54,54 @@
     @apply border border-ink-line bg-paper;
   }
 }
+
+@layer utilities {
+  /*
+   * Slow push-in on the hero photo. Restarts each time a slide becomes
+   * active, because the class moves with it.
+   */
+  @keyframes drift {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.08);
+    }
+  }
+
+  .animate-drift {
+    animation: drift 9s ease-out forwards;
+  }
+
+  /* The word that swaps under the headline. */
+  @keyframes word-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.35em);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-word-in {
+    animation: word-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Overshoots slightly and settles, so a hover feels sprung rather than linear. */
+  .ease-spring {
+    transition-timing-function: cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  /*
+   * Every flourish above is decorative. Anyone who asked for less motion
+   * gets the same layout, held still.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-drift,
+    .animate-word-in {
+      animation: none;
+    }
+  }
+}

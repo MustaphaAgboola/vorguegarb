@@ -91,11 +91,11 @@ export default async function OrdersPage() {
         </p>
       ) : orders.length === 0 ? (
         <div className="border border-dashed border-ink-line px-6 py-20 text-center">
-          <p className="eyebrow">{shopWide ? "No orders yet" : "No orders yet"}</p>
+          <p className="eyebrow">{shopWide ? "No orders yet" : "Nothing ordered yet"}</p>
           <p className="mt-3 text-sm text-ink-muted">
             {shopWide
               ? "Orders placed by customers will appear here."
-              : "When you place your first order it will show up here."}
+              : "Your first VogueGarb piece has to start somewhere."}
           </p>
           {shopWide ? null : (
             <Link href="/shop" className="btn-accent mt-8">

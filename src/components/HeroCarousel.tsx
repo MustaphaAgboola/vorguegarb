@@ -8,6 +8,12 @@ import { ProductImage } from "./ProductImage";
 const INTERVAL_MS = 5000;
 
 /**
+ * Swapped under the headline as the photos change. "Order" is first because
+ * made-to-order is the actual promise; the rest are flourish.
+ */
+const ENDINGS = ["order", "measure", "last", "move"];
+
+/**
  * Home page hero: the newest pieces, crossfading on a timer.
  *
  * Every slide is rendered and only its opacity changes, so the browser has the
@@ -58,7 +64,7 @@ export function HeroCarousel({ products }: { products: Product[] }) {
             key={product.id}
             aria-hidden={i !== index}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              i === index ? "opacity-100" : "opacity-0"
+              i === index ? "animate-drift opacity-100" : "opacity-0"
             }`}
           >
             <ProductImage
@@ -79,7 +85,12 @@ export function HeroCarousel({ products }: { products: Product[] }) {
           <h1 className="mt-3 max-w-2xl text-3xl font-normal leading-[1.1] text-paper sm:text-5xl">
             Bespoke fashion,
             <br />
-            made to order.
+            made to{" "}
+            {/* Keyed so React swaps the node and the animation replays. */}
+            <span key={index} className="animate-word-in inline-block italic">
+              {ENDINGS[index % ENDINGS.length]}
+            </span>
+            .
           </h1>
 
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
@@ -92,7 +103,11 @@ export function HeroCarousel({ products }: { products: Product[] }) {
 
             {/* Announces each change to screen readers without stealing focus. */}
             <p aria-live="polite" className="text-[11px] uppercase tracking-label text-paper/85">
-              <Link href={`/shop/${current.slug}`} className="underline underline-offset-4">
+              <span className="text-paper/55">Now showing — </span>
+              <Link
+                href={`/shop/${current.slug}`}
+                className="underline decoration-paper/40 underline-offset-4 transition-colors hover:decoration-paper"
+              >
                 {current.name}
               </Link>
             </p>
