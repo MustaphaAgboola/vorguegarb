@@ -17,5 +17,13 @@
   # in build output, that is a real leak to fix rather than silence.
   SECRETS_SCAN_OMIT_KEYS = "MAILGUN_API_BASE,NEXT_PUBLIC_SITE_URL"
 
+  # mobile/ is the Expo app and is not built or served by this site at all.
+  # mobile/eas.json carries the three EXPO_PUBLIC_* values an EAS build needs:
+  # the Supabase project URL, the anon key and this site's address. All three
+  # are public by design — the anon key is guarded by RLS and already ships
+  # inside the APK — but each duplicates a NEXT_PUBLIC_* value, so the scanner
+  # counts them as exposed secrets and fails the web build.
+  SECRETS_SCAN_OMIT_PATHS = "mobile/**"
+
 # Secrets (SUPABASE_SERVICE_ROLE_KEY, MAILGUN_API_KEY, ...) belong in the
 # Netlify UI with "Contains secret" enabled, never in this file.
