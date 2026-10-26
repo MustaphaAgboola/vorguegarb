@@ -4,12 +4,18 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  # MAILGUN_API_BASE is a public URL (`https://api.mailgun.net`), not a secret,
-  # but it legitimately appears in the repo (docs, .env.example, src/lib/mailgun.ts).
-  # Tell Netlify's secret scanner to skip this key so the build isn't failed by
-  # a false positive. If the scan still fails, also remove MAILGUN_API_BASE from
-  # the site's environment variables (the code has a working default) — see README.
-  SECRETS_SCAN_OMIT_KEYS = "MAILGUN_API_BASE"
+  # Both of these are public URLs that legitimately appear in the repo, so the
+  # secret scanner matches them and fails the build unless told otherwise:
+  #
+  #   MAILGUN_API_BASE     `https://api.mailgun.net` — in docs, .env.example
+  #                        and src/lib/mailgun.ts
+  #   NEXT_PUBLIC_SITE_URL the site's own address — in README.md, mobile/eas.json
+  #                        and as the metadataBase fallback in src/app/layout.tsx
+  #
+  # Neither is a credential. Anything genuinely secret (SUPABASE_SERVICE_ROLE_KEY,
+  # MAILGUN_API_KEY) must never be added here — if the scanner finds one of those
+  # in build output, that is a real leak to fix rather than silence.
+  SECRETS_SCAN_OMIT_KEYS = "MAILGUN_API_BASE,NEXT_PUBLIC_SITE_URL"
 
 # Secrets (SUPABASE_SERVICE_ROLE_KEY, MAILGUN_API_KEY, ...) belong in the
 # Netlify UI with "Contains secret" enabled, never in this file.
