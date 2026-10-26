@@ -8,7 +8,13 @@ import { AdminDeleteButton } from "./AdminDeleteButton";
 import { ProductImage } from "./ProductImage";
 
 /** One row of the admin collection list, which expands into an edit form. */
-export function AdminProductRow({ product }: { product: Product }) {
+export function AdminProductRow({
+  product,
+  categories,
+}: {
+  product: Product;
+  categories: string[];
+}) {
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -17,6 +23,7 @@ export function AdminProductRow({ product }: { product: Product }) {
         <p className="eyebrow mb-5 text-ink">Editing {product.name}</p>
         <AdminProductForm
           product={product}
+          categories={categories}
           onDone={() => setEditing(false)}
           onCancel={() => setEditing(false)}
         />

@@ -27,6 +27,11 @@ export default async function AdminPage() {
 
   const products = (data ?? []) as Product[];
 
+  // Derived from the rows already fetched, so the dropdown costs no extra query.
+  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort(
+    (a, b) => a.localeCompare(b)
+  );
+
   return (
     <div className="space-y-16">
       <div className="border-b border-ink-line pb-4">
@@ -41,7 +46,7 @@ export default async function AdminPage() {
           <h2 id="add-heading" className="eyebrow mb-6">
             Add a piece
           </h2>
-          <AdminProductForm />
+          <AdminProductForm categories={categories} />
         </div>
 
         <aside className="h-fit border border-ink-line p-6 text-sm text-ink-muted lg:sticky lg:top-24">
@@ -81,7 +86,7 @@ export default async function AdminPage() {
         ) : (
           <ul className="mt-2 divide-y divide-ink-line">
             {products.map((product) => (
-              <AdminProductRow key={product.id} product={product} />
+              <AdminProductRow key={product.id} product={product} categories={categories} />
             ))}
           </ul>
         )}

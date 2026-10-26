@@ -6,20 +6,31 @@ import type { Product } from "@/types";
 
 type Status = { kind: "idle" } | { kind: "error"; message: string } | { kind: "done"; name: string };
 
+/** Sentinel for the "add a category that doesn't exist yet" option. */
+const NEW_CATEGORY = "__new__";
+
 type Props = {
   /** Present in edit mode; omitted when adding a new piece. */
   product?: Product;
+  /** Categories already in use, for the dropdown. */
+  categories: string[];
   /** Called after a successful edit, so the row can close itself. */
   onDone?: () => void;
   onCancel?: () => void;
 };
 
-export function AdminProductForm({ product, onDone, onCancel }: Props) {
+export function AdminProductForm({ product, categories, onDone, onCancel }: Props) {
   const router = useRouter();
   const editing = Boolean(product);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [preview, setPreview] = useState<string | null>(null);
+  const [addingCategory, setAddingCategory] = useState(false);
+
+  // "general" is the server-side default, so it is always offered.
+  const options = Array.from(new Set(["general", ...categories])).sort((a, b) =>
+    a.localeCompare(b)
+  );
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -71,6 +82,8 @@ export function AdminProductForm({ product, onDone, onCancel }: Props) {
         return;
       }
       form.reset();
+      // form.reset() restores the select, so drop the extra input with it.
+      setAddingCategory(false);
       setStatus({ kind: "done", name });
     } catch {
       setStatus({ kind: "error", message: "Network error. Please try again." });
@@ -125,14 +138,35 @@ export function AdminProductForm({ product, onDone, onCancel }: Props) {
           <label htmlFor={`category-${product?.id ?? "new"}`} className="label">
             Category
           </label>
-          <input
+          <select
             id={`category-${product?.id ?? "new"}`}
-            name="category"
-            maxLength={60}
-            placeholder="ankara"
+            // Only carries the value while an existing category is selected;
+            // the text input below takes over the field name otherwise.
+            name={addingCategory ? undefined : "category"}
             defaultValue={product?.category ?? "general"}
-            className="field"
-          />
+            onChange={(e) => setAddingCategory(e.target.value === NEW_CATEGORY)}
+            className="field capitalize"
+          >
+            {options.map((c) => (
+              <option key={c} value={c} className="capitalize">
+                {c}
+              </option>
+            ))}
+            <option value={NEW_CATEGORY}>+ New category…</option>
+          </select>
+
+          {addingCategory ? (
+            <input
+              name="category"
+              required
+              autoFocus
+              minLength={2}
+              maxLength={60}
+              placeholder="e.g. agbada"
+              aria-label="New category name"
+              className="field mt-2"
+            />
+          ) : null}
         </div>
 
         <div className="sm:col-span-2">
