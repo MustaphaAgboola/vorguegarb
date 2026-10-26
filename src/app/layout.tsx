@@ -11,7 +11,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://vorguegarb.netlify.app";
+// `||`, not `??`: Netlify can hand us an empty string, and new URL("") throws
+// at build time. Only `||` treats "" as absent.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vorguegarb.netlify.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
