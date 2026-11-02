@@ -4,14 +4,14 @@ Instructions for AI coding agents working on **VogueGarb**, a fashion design and
 
 ## Project summary
 
-Next.js shop with Google sign-in, cart, checkout, orders stored in Supabase Postgres, and Mailgun confirmation emails. HNG15 Lesson 2. **Hard deadline: Friday 11:59 PM WAT.** Favor working and simple over clever.
+Next.js shop with Google sign-in, cart, checkout, orders stored in Supabase Postgres, and Brevo confirmation emails. HNG15 Lesson 2. **Hard deadline: Friday 11:59 PM WAT.** Favor working and simple over clever.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript
 - Tailwind CSS
 - Supabase: Postgres + Auth (Google provider), using `@supabase/ssr`
-- Mailgun via its HTTP API (server-side only)
+- Brevo via its transactional email API (server-side only)
 - Deployed on Netlify (config in `netlify.toml`)
 
 ## Commands
@@ -41,7 +41,7 @@ src/
   lib/
     supabase/client.ts        # Browser client
     supabase/server.ts        # Server client (cookies)
-    mailgun.ts                # sendOrderConfirmation()
+    email.ts                  # sendOrderConfirmation(), sendAdminOrderNotification()
     cart.ts                   # Cart state helpers
   types/                      # Shared TS types
 supabase/
@@ -57,10 +57,9 @@ Define in `.env.local` (never commit). Keep `.env.example` updated with the same
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=      # server only, use sparingly
-MAILGUN_API_KEY=                # server only
-MAILGUN_DOMAIN=                 # sandbox or verified domain
-MAILGUN_FROM="VogueGarb <orders@YOUR_DOMAIN>"
-MAILGUN_API_BASE=https://api.mailgun.net   # use https://api.eu.mailgun.net for EU accounts
+BREVO_API_KEY=                  # server only
+BREVO_FROM_EMAIL=               # verified Brevo sender, e.g. orders@YOUR_DOMAIN
+BREVO_FROM_NAME=VogueGarb       # optional
 NEXT_PUBLIC_SITE_URL=
 ```
 
@@ -77,10 +76,11 @@ Only variables that are safe to expose get the `NEXT_PUBLIC_` prefix. Secrets mu
 
 ### Orders and email
 1. Save the order and its items first, then send the email.
-2. A Mailgun failure must **not** fail the order. Catch the error, log it, and leave `email_sent_at` null. On success, set `email_sent_at`.
+2. A Brevo failure must **not** fail the order. Catch the error, log it, and leave `email_sent_at` null. On success, set `email_sent_at`.
 3. Snapshot `name` and `unit_price` into `order_items` at purchase time.
 4. Prevent double submits: disable the button while the request is in flight.
-5. Mailgun sandbox domains only deliver to authorized recipients. If emails don't arrive, check that first.
+5. Brevo rejects sends from an unverified sender. If emails don't arrive, check that `BREVO_FROM_EMAIL` is verified under Senders, Domains & Dedicated IPs first.
+6. Each order sends two emails: the customer confirmation and a separate store notification to `ADMIN_EMAILS`. Each goes in its own try block so one failure cannot swallow the other, and `email_sent_at` tracks the customer confirmation only.
 
 ### Code style
 - TypeScript strict. No `any` unless unavoidable and commented.

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:mailgun": "node scripts/test-mailgun.mjs"
+    "test:email": "node scripts/test-email.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

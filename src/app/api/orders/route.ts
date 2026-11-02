@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthed } from "@/lib/supabase/server";
-import { sendOrderConfirmation, type OrderEmailData } from "@/lib/mailgun";
+import { sendOrderConfirmation, sendAdminOrderNotification, type OrderEmailData } from "@/lib/email";
 
 const bodySchema = z.object({
   fullName: z.string().trim().min(2).max(100),
@@ -55,20 +55,35 @@ export async function POST(req: Request) {
   // Empty the cart on every device
   await supabase.from("cart_items").delete().eq("user_id", user.id);
 
-  // Email is best effort and never fails the order
+  // Both emails are best effort and never fail the order. They are sent in
+  // separate try blocks so one provider failure cannot swallow the other, and
+  // email_sent_at tracks the customer's confirmation only.
   try {
-    const { data: order } = await supabase
+    const { data } = await supabase
       .from("orders")
-      .select("id,total,full_name,phone,address,city,state,order_items(name,unit_price,size,quantity)")
+      .select("id,total,full_name,phone,address,city,state,notes,order_items(name,unit_price,size,quantity)")
       .eq("id", orderId)
       .single();
+    const order = data as unknown as OrderEmailData | null;
 
-    if (order && user.email) {
-      await sendOrderConfirmation({ to: user.email, order: order as unknown as OrderEmailData });
-      await supabase.from("orders").update({ email_sent_at: new Date().toISOString() }).eq("id", orderId);
+    if (order) {
+      if (user.email) {
+        try {
+          await sendOrderConfirmation({ to: user.email, order });
+          await supabase.from("orders").update({ email_sent_at: new Date().toISOString() }).eq("id", orderId);
+        } catch (err) {
+          console.error("Confirmation email failed:", err);
+        }
+      }
+
+      try {
+        await sendAdminOrderNotification({ order, customerEmail: user.email ?? null });
+      } catch (err) {
+        console.error("Admin order notification failed:", err);
+      }
     }
   } catch (err) {
-    console.error("Confirmation email failed:", err);
+    console.error("Could not load the order for email:", err);
   }
 
   return NextResponse.json({ orderId }, { status: 201 });

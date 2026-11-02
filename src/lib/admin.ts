@@ -4,12 +4,12 @@
  * which means normal clients cannot write products at all — the admin routes
  * do their writes with the service role key behind this check.
  */
-const allowlist = (process.env.ADMIN_EMAILS ?? "")
+export const adminEmails = (process.env.ADMIN_EMAILS ?? "")
   .split(",")
   .map((email) => email.trim().toLowerCase())
   .filter(Boolean);
 
 export function isAdmin(email: string | null | undefined): boolean {
   if (!email) return false;
-  return allowlist.includes(email.toLowerCase());
+  return adminEmails.includes(email.toLowerCase());
 }

@@ -14,7 +14,7 @@ VogueGarb is a fashion design and styling store based in Lagos, Nigeria. This pr
 ## 2. Goals
 
 1. Ship a complete, deployed, end-to-end shopping flow before the deadline.
-2. Meet all four HNG requirements: checkout page, database persistence, Mailgun confirmation emails, Google auth.
+2. Meet all four HNG requirements: checkout page, database persistence, confirmation emails, Google auth.
 3. Present VogueGarb as a credible fashion brand (clean, mobile-first, fast).
 
 ## 3. Non-Goals (out of scope for this deadline)
@@ -64,7 +64,7 @@ VogueGarb is a fashion design and styling store based in Lagos, Nigeria. This pr
 - Totals are recalculated **server-side** from database prices, never from client input.
 - Each order is linked to the authenticated user.
 
-**FR6: Confirmation email (Mailgun)**
+**FR6: Confirmation email (Brevo)**
 - Sent after the order is successfully saved.
 - Contains order ID, items, quantities, total, and delivery details.
 - An email failure must **not** roll back the order. It is logged and `email_sent_at` stays null.
@@ -103,7 +103,7 @@ VogueGarb is a fashion design and styling store based in Lagos, Nigeria. This pr
 3. Opens Cart and clicks Checkout.
 4. If logged out, signs in with Google and returns to Checkout.
 5. Fills the delivery form and places the order.
-6. Server validates, recalculates the total, saves the order, and sends the Mailgun email.
+6. Server validates, recalculates the total, saves the order, and sends the confirmation email.
 7. Customer lands on the Order Success page and finds the email in their inbox.
 
 ## 8. Tech Stack
@@ -113,7 +113,7 @@ VogueGarb is a fashion design and styling store based in Lagos, Nigeria. This pr
 | Framework | Next.js (App Router) + TypeScript |
 | Styling | Tailwind CSS |
 | Database + Auth | Supabase (Postgres + Google OAuth) |
-| Email | Mailgun (server-side) |
+| Email | Brevo (server-side) |
 | Hosting | Netlify |
 | Auth provider setup | Google Cloud Console (OAuth consent screen + Web client) |
 
@@ -121,9 +121,9 @@ VogueGarb is a fashion design and styling store based in Lagos, Nigeria. This pr
 
 | When | Deliverable |
 |---|---|
-| Thursday night | Accounts set up (Google, Supabase, Mailgun), schema + seed data, skeleton deployed, Google login working |
+| Thursday night | Accounts set up (Google, Supabase, Brevo), schema + seed data, skeleton deployed, Google login working |
 | Friday morning | Shop, product detail, cart, checkout, order saving |
-| Friday afternoon | Mailgun email, success page, My Orders, RLS |
+| Friday afternoon | Confirmation email, success page, My Orders, RLS |
 | Friday evening (by ~9 PM) | Full test on the live URL, README, submit |
 
 ## 10. Acceptance Criteria
@@ -141,7 +141,7 @@ VogueGarb is a fashion design and styling store based in Lagos, Nigeria. This pr
 
 | Risk | Mitigation |
 |---|---|
-| Mailgun sandbox only sends to authorized recipients | Add test emails as authorized recipients early, or verify a custom domain |
+| Brevo rejects sends from an unverified sender | Verify the sender address (or authenticate the domain) in Brevo early |
 | Google OAuth redirect mismatch after deploy | Add production URL to Google redirect URIs and Supabase site URL on deploy day |
 | Secret keys exposed to the client | Server-only env vars; never prefix secrets with `NEXT_PUBLIC_` |
 | Running out of time | Deploy a skeleton tonight; cut "My Orders" and category filter first if needed |

@@ -6,15 +6,14 @@ VogueGarb is a fashion design and styling store for Lagos, Nigeria. It is a
 **Next.js website** plus an **Expo mobile app** that share **one Supabase
 backend** — the same Google login, the same products, and the same cart on both
 platforms. Customers sign in with Google, browse the collection, add pieces to
-a cart, check out, and receive a Mailgun email confirmation.
+a cart, check out, and receive an email confirmation.
 
 Built for **HNG15**. Requirements live in [`PRD.md`](./PRD.md); build
 conventions live in [`AGENTS.md`](./AGENTS.md).
 
 ## Live website
 
-<!-- TODO: fill in the Netlify URL after the deploy finishes -->
-**URL:** `https://____________________.netlify.app`
+**URL:** https://voguegarb.app
 
 ## Tech stack
 
@@ -23,7 +22,7 @@ conventions live in [`AGENTS.md`](./AGENTS.md).
 | Web | Next.js (App Router) + TypeScript, Tailwind CSS, deployed on Netlify |
 | Mobile | Expo / React Native + TypeScript, expo-router, built with EAS (Android APK) |
 | Shared backend | Supabase — Postgres, Google Auth, and Realtime (`cart_items`) |
-| Email | Mailgun HTTP API, sent server-side from the web app |
+| Email | Brevo transactional API, sent server-side from the web app |
 
 ## Web setup
 
@@ -40,10 +39,9 @@ Environment variables (`.env.local` — never committed; see `.env.example`):
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key (safe to expose) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only; admin tasks |
-| `MAILGUN_API_KEY` | Server only |
-| `MAILGUN_DOMAIN` | Sandbox or verified domain |
-| `MAILGUN_FROM` | e.g. `VogueGarb <orders@yourdomain.com>` |
-| `MAILGUN_API_BASE` | Optional; `https://api.mailgun.net` (EU accounts: `https://api.eu.mailgun.net`) |
+| `BREVO_API_KEY` | Server only (Brevo → SMTP & API → API keys) |
+| `BREVO_FROM_EMAIL` | From address; must be a verified Brevo sender, e.g. `orders@yourdomain.com` |
+| `BREVO_FROM_NAME` | Optional; defaults to `VogueGarb` |
 | `NEXT_PUBLIC_SITE_URL` | Public site URL, used in auth redirect URLs |
 | `ADMIN_EMAILS` | Server only; comma-separated Google addresses allowed into `/admin` |
 
@@ -55,9 +53,15 @@ Scripts: `npm run lint` and `npm run build` must both pass before committing.
 
 **Deploy (Netlify):** the repo deploys with `netlify.toml`
 (`npm run build`, publish `.next`, Node 22). Set the env vars above in the
-Netlify UI — mark the service role key and Mailgun key as secrets. If the
-secret scanner flags `MAILGUN_API_BASE`, see the `SECRETS_SCAN_OMIT_KEYS`
-note in `netlify.toml`.
+Netlify UI — mark the service role key and Brevo API key as secrets. If the
+secret scanner flags a public value, see the `SECRETS_SCAN_OMIT_KEYS` note in
+`netlify.toml`.
+
+To check email delivery end to end with the app's own credentials:
+
+```bash
+npm run test:email you@example.com
+```
 
 ## Mobile setup
 
@@ -94,7 +98,7 @@ profile's `env` block so EAS builds get them too.
   `/api/cart` and `/api/orders` endpoints with the Supabase session token as an
   `Authorization: Bearer <token>` header, so cart mutations and orders run
   through the exact same server code (and server-side total calculation and
-  Mailgun email) as the website.
+  confirmation email) as the website.
 
 ## Admin
 
@@ -105,6 +109,11 @@ server-only comma-separated allowlist:
 ```
 ADMIN_EMAILS=owner@gmail.com,second.owner@gmail.com
 ```
+
+Every address on that list also receives a "New order" email each time a
+customer checks out — items, total, customer contact details and the delivery
+address — separate from the customer's own confirmation. An admin is shown all
+customers' orders on `/orders` too.
 
 Signed-out visitors are redirected to login; signed-in non-admins get a 404, so
 the page's existence isn't advertised. Writes go through the service-role key

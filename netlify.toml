@@ -4,18 +4,16 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  # Both of these are public URLs that legitimately appear in the repo, so the
-  # secret scanner matches them and fails the build unless told otherwise:
-  #
-  #   MAILGUN_API_BASE     `https://api.mailgun.net` — in docs, .env.example
-  #                        and src/lib/mailgun.ts
-  #   NEXT_PUBLIC_SITE_URL the site's own address — in README.md, mobile/eas.json
-  #                        and as the metadataBase fallback in src/app/layout.tsx
-  #
-  # Neither is a credential. Anything genuinely secret (SUPABASE_SERVICE_ROLE_KEY,
-  # MAILGUN_API_KEY) must never be added here — if the scanner finds one of those
-  # in build output, that is a real leak to fix rather than silence.
-  SECRETS_SCAN_OMIT_KEYS = "MAILGUN_API_BASE,NEXT_PUBLIC_SITE_URL"
+  # NEXT_PUBLIC_SITE_URL is a public URL that legitimately appears in the repo —
+  # in README.md, mobile/eas.json and as the metadataBase fallback in
+  # src/app/layout.tsx — so the secret scanner matches it and fails the build
+  # unless told otherwise. It is not a credential. If the scanner ever flags
+  # BREVO_FROM_EMAIL (also public — it is the From address on every order
+  # email), add it to this list too. Anything genuinely secret
+  # (SUPABASE_SERVICE_ROLE_KEY, BREVO_API_KEY) must never be added here — if the
+  # scanner finds one of those in build output, that is a real leak to fix
+  # rather than silence.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SITE_URL"
 
   # mobile/ is the Expo app and is not built or served by this site at all.
   # mobile/eas.json carries the three EXPO_PUBLIC_* values an EAS build needs:
@@ -25,5 +23,5 @@
   # counts them as exposed secrets and fails the web build.
   SECRETS_SCAN_OMIT_PATHS = "mobile/**"
 
-# Secrets (SUPABASE_SERVICE_ROLE_KEY, MAILGUN_API_KEY, ...) belong in the
+# Secrets (SUPABASE_SERVICE_ROLE_KEY, BREVO_API_KEY, ...) belong in the
 # Netlify UI with "Contains secret" enabled, never in this file.
