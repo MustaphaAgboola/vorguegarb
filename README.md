@@ -8,7 +8,8 @@ backend** — the same Google login, the same products, and the same cart on bot
 platforms. Customers sign in with Google, browse the collection, add pieces to
 a cart, check out, and receive an email confirmation.
 
-Built for **HNG15**. Requirements live in [`PRD.md`](./PRD.md); build
+What the store does and what it deliberately leaves out live in
+[`PRD.md`](./PRD.md); build
 conventions live in [`AGENTS.md`](./AGENTS.md).
 
 ## Live website
