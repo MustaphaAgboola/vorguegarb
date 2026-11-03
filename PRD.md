@@ -64,6 +64,11 @@ fix this file rather than working around it.
 - `/admin` adds and removes products with photos uploaded to Supabase Storage,
   gated by the server-only `ADMIN_EMAILS` allowlist. Admins also see all
   customers' orders on `/orders`.
+- On `/orders`, an admin can move each order between `pending`, `confirmed`,
+  `delivered` and `cancelled` (`PATCH /api/admin/orders`, same admin gate).
+  Customers see the current status on My Orders on the website and in the app.
+  Cancelled orders are left out of the admin revenue total. A status change
+  sends no email, and nothing else about the order can be edited.
 
 **Mobile app**
 - Expo / React Native app in `mobile/`, sharing the backend and calling the
@@ -73,9 +78,9 @@ fix this file rather than working around it.
 
 - **Payment processing.** Orders are pay-on-delivery. Adding Paystack or
   Flutterwave is the largest open question and affects the order lifecycle.
-- **Order lifecycle.** `orders.status` only allows `pending` and `confirmed`,
-  and nothing in the app moves it. There is no shipped/delivered/cancelled
-  state and no way for a customer to see progress.
+- **Order lifecycle beyond manual status.** Admins set status by hand (see
+  section 3). There are no automatic transitions, no customer-initiated
+  cancellation, no status-change emails and no shipping or tracking details.
 - **Stock counts.** Only the `in_stock` boolean, so the store can oversell.
 - Discount codes, reviews, wishlists, multi-currency, multi-language.
 
@@ -89,7 +94,8 @@ fix this file rather than working around it.
 one row per customer per product/size, carrying `quantity`
 
 **orders**
-`id (uuid)`, `user_id (→ auth.users)`, `status` (`pending` | `confirmed`),
+`id (uuid)`, `user_id (→ auth.users)`,
+`status` (`pending` | `confirmed` | `delivered` | `cancelled`),
 `total` (integer), `full_name`, `phone`, `address`, `city`, `state`, `notes`,
 `email_sent_at`, `created_at`
 

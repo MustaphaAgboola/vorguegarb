@@ -4,8 +4,16 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
-import { formatDate, formatNaira, shortOrderId } from "@/lib/format";
-import type { Order } from "@/types";
+import { formatDate, formatNaira, orderStatusLabel, shortOrderId } from "@/lib/format";
+import { AdminOrderStatus } from "@/components/AdminOrderStatus";
+import type { Order, OrderStatus } from "@/types";
+
+const badgeStyle: Record<OrderStatus, string> = {
+  pending: "border-ink-line text-ink-muted",
+  confirmed: "border-ink bg-ink text-paper",
+  delivered: "border-ink text-ink",
+  cancelled: "border-ink-line text-ink-muted line-through",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +72,10 @@ export default async function OrdersPage() {
 
   const { orders, error, emails, shopWide } = await loadOrders(user.email);
 
-  const revenue = orders.reduce((sum, o) => sum + o.total, 0);
+  // Cancelled orders were never paid for (pay-on-delivery), so leave them out.
+  const revenue = orders
+    .filter((o) => o.status !== "cancelled")
+    .reduce((sum, o) => sum + o.total, 0);
 
   return (
     <div className="space-y-10">
@@ -122,12 +133,10 @@ export default async function OrdersPage() {
                   ) : null}
                   <span
                     className={`border px-2.5 py-1 text-[10px] font-medium uppercase tracking-label ${
-                      order.status === "confirmed"
-                        ? "border-ink bg-ink text-paper"
-                        : "border-ink-line text-ink-muted"
+                      badgeStyle[order.status] ?? badgeStyle.pending
                     }`}
                   >
-                    {order.status === "confirmed" ? "Confirmed" : "Pending"}
+                    {orderStatusLabel[order.status] ?? order.status}
                   </span>
                 </div>
               </div>
@@ -180,6 +189,12 @@ export default async function OrdersPage() {
                 </div>
                 <p className="text-base font-medium">{formatNaira(order.total)}</p>
               </div>
+
+              {shopWide ? (
+                <div className="mt-4 border-t border-ink-line pt-4">
+                  <AdminOrderStatus id={order.id} status={order.status} />
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>

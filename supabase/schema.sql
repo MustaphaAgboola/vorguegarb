@@ -20,7 +20,8 @@ create table if not exists public.products (
 create table if not exists public.orders (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users(id) on delete cascade,
-  status        text not null default 'pending' check (status in ('pending','confirmed')),
+  status        text not null default 'pending'
+                check (status in ('pending','confirmed','delivered','cancelled')),
   total         integer not null check (total >= 0),
   full_name     text not null,
   phone         text not null,
@@ -32,6 +33,14 @@ create table if not exists public.orders (
   created_at    timestamptz not null default now()
 );
 create index if not exists orders_user_idx on public.orders(user_id, created_at desc);
+
+-- `create table if not exists` leaves an existing table's check alone, so
+-- widen the status check explicitly for projects created before
+-- 'delivered' and 'cancelled' existed. Only the admin route moves status,
+-- via the service role; customers have no update grant on this column.
+alter table public.orders drop constraint if exists orders_status_check;
+alter table public.orders add constraint orders_status_check
+  check (status in ('pending','confirmed','delivered','cancelled'));
 
 -- ORDER ITEMS ------------------------------------------------------------
 create table if not exists public.order_items (

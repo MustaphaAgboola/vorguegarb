@@ -8,9 +8,11 @@ export type OrderItem = {
   quantity: number;
 };
 
+export type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+
 export type Order = {
   id: string;
-  status: 'pending' | 'confirmed';
+  status: OrderStatus;
   total: number;
   full_name: string;
   phone: string;
@@ -38,9 +40,12 @@ export function formatDate(iso: string): string {
   return dateFormatter.format(new Date(iso));
 }
 
-export function isConfirmed(order: Order): boolean {
-  return order.status === 'confirmed';
-}
+export const orderStatusLabel: Record<OrderStatus, string> = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+};
 
 /**
  * The signed-in user's orders, newest first. RLS scopes rows to the owner,

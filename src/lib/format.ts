@@ -1,3 +1,5 @@
+import type { OrderStatus } from "@/types";
+
 // Money is stored as an integer in naira (see AGENTS.md).
 const naira = new Intl.NumberFormat("en-NG", {
   style: "currency",
@@ -12,3 +14,10 @@ export const shortOrderId = (id: string) => id.slice(0, 8).toUpperCase();
 
 export const formatDate = (iso: string) =>
   new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(iso));
+
+export const orderStatusLabel: Record<OrderStatus, string> = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};

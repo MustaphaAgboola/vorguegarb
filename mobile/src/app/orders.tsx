@@ -8,21 +8,31 @@ import { Spacing } from '@/constants/theme';
 import { useSession } from '@/hooks/use-session';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNaira } from '@/lib/catalog';
-import { fetchOrders, formatDate, shortOrderId, type Order } from '@/lib/orders';
+import {
+  fetchOrders,
+  formatDate,
+  orderStatusLabel,
+  shortOrderId,
+  type Order,
+  type OrderStatus,
+} from '@/lib/orders';
 
 const ACCENT = '#208AEF';
 const HAIRLINE = '#8884';
 
-function StatusBadge({ confirmed }: { confirmed: boolean }) {
+const BADGE_COLORS: Record<OrderStatus, { background: string; text: string }> = {
+  pending: { background: '#FEF3C7', text: '#92400E' },
+  confirmed: { background: '#DBEAFE', text: '#1E40AF' },
+  delivered: { background: '#DCFCE7', text: '#166534' },
+  cancelled: { background: '#F3F4F6', text: '#4B5563' },
+};
+
+function StatusBadge({ status }: { status: OrderStatus }) {
+  const colors = BADGE_COLORS[status] ?? BADGE_COLORS.pending;
   return (
-    <View
-      style={[
-        styles.badge,
-        { backgroundColor: confirmed ? '#DCFCE7' : '#FEF3C7' },
-      ]}>
-      <ThemedText
-        style={[styles.badgeLabel, { color: confirmed ? '#166534' : '#92400E' }]}>
-        {confirmed ? 'Confirmed' : 'Pending'}
+    <View style={[styles.badge, { backgroundColor: colors.background }]}>
+      <ThemedText style={[styles.badgeLabel, { color: colors.text }]}>
+        {orderStatusLabel[status] ?? status}
       </ThemedText>
     </View>
   );
@@ -40,7 +50,7 @@ function OrderCard({ order }: { order: Order }) {
             {formatDate(order.created_at)}
           </ThemedText>
         </View>
-        <StatusBadge confirmed={order.status === 'confirmed'} />
+        <StatusBadge status={order.status} />
       </View>
 
       <View style={styles.itemsBox}>

@@ -19,11 +19,14 @@ export type OrderItem = {
   quantity: number;
 };
 
+export const ORDER_STATUSES = ["pending", "confirmed", "delivered", "cancelled"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
 export type Order = {
   id: string;
   /** Only selected in the admin-wide orders view; RLS scopes it away otherwise. */
   user_id?: string;
-  status: "pending" | "confirmed";
+  status: OrderStatus;
   total: number;
   full_name: string;
   phone: string;
